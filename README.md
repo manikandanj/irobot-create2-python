@@ -5,4 +5,4 @@ Python script to control iRobot Create2
 Python
 
 ## Project setup
-pip install < dependency.txt
+pip install < requirements.txt
