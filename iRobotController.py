@@ -9,13 +9,23 @@
 import serial
 import time
 
-# Add code to fetch COM port dynamically
+# Add code to fetch and set COM port dynamically
 COM_PORT = 'COM4'
+START = '128'
+SAFE_MODE = '131'
 DRIVE = '137'
+STOP = '173'
+DEFAULT_VELOCITY = 200
+ser = serial.Serial(COM_PORT, baudrate=115200, timeout=1)
 
-def connectRobot():
-	ser = serial.Serial(COM_PORT, baudrate=115200, timeout=1)
-
+def getReady():    
+    __sendCommand(START)
+    __sendCommand(SAFE_MODE)
+    
+def finish():
+    ser = None
+    __sendCommand(STOP)
+    
 def __format_to_two_bytes(val):
 	binformat = bin(val & 0b1111111111111111)
 	hexformat = hex(int(binformat, 2))
@@ -23,9 +33,9 @@ def __format_to_two_bytes(val):
 	return str(firstbyte) + ' ' + str(secondbyte)
 
 def __sendCommand(command):
-	cmd = ""
+    cmd = ""
     for v in command.split():
-		cmd += chr(int(v))
+        cmd += chr(int(v))    
     ser.write(cmd)
     time.sleep(1)
 	
@@ -34,23 +44,44 @@ def driveRobot(velocity, radius):
 	__sendCommand(command)
 
 def driveForward(velocity):
-	driveRobot(velocity, 32768)
+    driveRobot(velocity, 32768)    
 
-def driveBackward():
+def driveForwardFor(duration):
+    driveForward(DEFAULT_VELOCITY)
+    time.sleep(duration)
+    
+def driveBackward(velocity):
 	driveRobot(-1 * velocity, 32768)
 	
+def driveBackwardFor(duration):
+    driveBackward(DEFAULT_VELOCITY)
+    time.sleep(duration)
+    
 def rotateClockwise(velocity):
 	driveRobot(velocity, -1)
 
-def rotateAntiClockwise(velocity):
+def rotateClockwiseFor(duration):
+    rotateClockwise(DEFAULT_VELOCITY)
+    time.sleep(duration)
+    
+def rotateCounterClockwise(velocity):
 	driveRobot(velocity, 1)
 	
+def rotateCounterClockwiseFor(duration):
+    rotateCounterClockwise(DEFAULT_VELOCITY)
+    time.sleep(duration)
+    
+def turnRight():
+    rotateClockwiseFor(0.2)
+    
+def turnLeft():
+    rotateCounterClockwiseFor(0.6)
+    
+def turnAround():
+    rotateClockwiseFor(1.3)
+    
 def parkRobot():
 	driveRobot(0,0)
 
-connectRobot()
-while 1:
-    command = raw_input("Enter a command: ")
-    if(command == 'exit'):
-        sys.exit('goodbye!')
-	__sendCommand(command)
+def beep():
+    __sendCommand('140 3 1 64 16 141 3')
